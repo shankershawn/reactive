@@ -5,17 +5,17 @@ package shankarsan.reactive;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 
 /**
  * @author SHANKARSAN
  *
  */
 
-@EnableCaching
+//@EnableCaching
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(securedEnabled = true)
-@SpringBootApplication
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class Application {
 	public static void main(String [] args) {
 		SpringApplication.run(Application.class);

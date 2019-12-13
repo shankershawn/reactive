@@ -8,5 +8,6 @@ package shankarsan.reactive.service;
  *
  */
 public interface ReactiveService {
-	public void printService() throws InterruptedException;
+	public void printService();
+	public String getDBData();
 }
