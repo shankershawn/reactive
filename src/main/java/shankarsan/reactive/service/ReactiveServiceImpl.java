@@ -3,7 +3,10 @@
  */
 package shankarsan.reactive.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.bson.Document;
@@ -11,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -25,7 +30,7 @@ import io.reactivex.schedulers.Schedulers;
 @Service
 public class ReactiveServiceImpl implements ReactiveService {
 	
-	@Autowired @Qualifier("MongoDBClient") private MongoClient mongoClient;
+	@Autowired @Qualifier("mongodbCollection") private MongoCollection<Document> mongoConnection;
 
 	@Override
 	public void printService() {
@@ -56,18 +61,18 @@ public class ReactiveServiceImpl implements ReactiveService {
 	}
 
 	@Override
-	public String getDBData() {
-		
-		FindIterable<Document> dataIterable = mongoClient.getDatabase("shankarsanDb").getCollection("nairita").find();
-		Iterator<Document> documentIterator = dataIterable.iterator();
+	public List<String> getDBData() {
+		//FindIterable<Document> dataIterable1 = mongoClient.getDatabase("shankarsanDb").getCollection("nairita").find();
+		List<String> documentList = new ArrayList<>();
+		AggregateIterable<Document> dataIterable1 = mongoConnection
+				.aggregate(Arrays
+						.asList(Aggregates
+								.group("$husband.Salary", Accumulators
+										.sum("num_salary", 1))));
+		Iterator<Document> documentIterator = dataIterable1.iterator();
 		while(documentIterator.hasNext()) {
-			System.out.println(documentIterator.next().toJson());
+			documentList.add(documentIterator.next().toJson());
 		}
-		return null;
+		return documentList;
 	}
-	
-	/*public static void main(String [] args) throws InterruptedException {
-		new ReactiveServiceImpl().printService();
-	}*/
-
 }

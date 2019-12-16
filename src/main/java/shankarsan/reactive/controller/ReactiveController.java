@@ -3,6 +3,7 @@
  */
 package shankarsan.reactive.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +33,8 @@ public class ReactiveController {
 		return "printed";
 	}
 	
-	@GetMapping(value = "calldb", produces = MediaType.TEXT_PLAIN_VALUE)
-	public String calldb(@PathVariable Map<String, String> requestParamMap) {
+	@GetMapping(value = "calldb", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<String> calldb(@PathVariable Map<String, String> requestParamMap) {
 		return reactiveService.getDBData();
 	}
 
