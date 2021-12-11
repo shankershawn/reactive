@@ -40,8 +40,8 @@ public class ReactiveController {
 	}
 	
 	@GetMapping(value = "download")
-	public void download(@RequestParam(name = "url") String url, @RequestParam(name = "nc_cat") String ncCat, @RequestParam(name = "nc_ohc") String ncOhc, @RequestParam(name = "oh") String oh, @RequestParam(name = "oe") String oe) {
-		reactiveService.download(url, ncCat, ncOhc, oh, oe);
+	public void download(@RequestParam(name = "url") String url, @RequestParam(name = "nc_cat") String ncCat, @RequestParam(name = "nc_ohc") String ncOhc, @RequestParam(name = "oh") String oh, @RequestParam(name = "oe") String oe, @RequestParam(name = "like_count") String likeCount) {
+		reactiveService.download(url, ncCat, ncOhc, oh, oe, likeCount);
 	}
 
 }

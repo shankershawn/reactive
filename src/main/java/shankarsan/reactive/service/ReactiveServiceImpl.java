@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,6 +50,39 @@ public class ReactiveServiceImpl implements ReactiveService {
 	
 	@Autowired @Qualifier("mongodbCollection") private MongoCollection<Document> mongoConnection;
 	@Autowired private Environment env;
+	private TrustManager trustManager[];
+	
+	public ReactiveServiceImpl() {
+		try {
+			this.trustManager = new TrustManager[] {
+					new X509TrustManager() {
+						
+						@Override
+						public X509Certificate[] getAcceptedIssuers() {
+							// TODO Auto-generated method stub
+							return null;
+						}
+						
+						@Override
+						public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+							// TODO Auto-generated method stub
+							
+						}
+						
+						@Override
+						public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+							// TODO Auto-generated method stub
+							
+						}
+					}
+			};
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustManager, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		} catch (KeyManagementException|NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public void printService() {
@@ -72,8 +108,6 @@ public class ReactiveServiceImpl implements ReactiveService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
 	}
 
 	@Override
@@ -93,51 +127,27 @@ public class ReactiveServiceImpl implements ReactiveService {
 	}
 
 	@Override
-	public void download(String fileUrl, String ncCat, String ncOhc, String oh, String oe) {
-		//String fileUrl = "https://instagram.fhyd2-1.fna.fbcdn.net/v/t51.2885-15/e35/67279283_2776497445737040_5300287398704471267_n.jpg?_nc_ht=instagram.fhyd2-1.fna.fbcdn.net&_nc_cat=1&_nc_ohc=K7IBshnpZZ4AX9deqta&oh=3b08b314b5be3f6dda4be8e2c081f7c0&oe=5E859849";
+	public void download(String fileUrl, String ncCat, String ncOhc, String oh, String oe, String likeCount) {
 		Random random = new Random();
-		String filePath = env.getProperty("file.path") + random.nextInt() + env.getProperty("file.extn");
-		fileUrl = new StringBuilder(fileUrl).append("&").append(ncCat).append("&").append(ncOhc).append("&").append(oh).append("&").append(oe).toString();
-		TrustManager trustManager[] = new TrustManager[] {
-				new X509TrustManager() {
-					
-					@Override
-					public X509Certificate[] getAcceptedIssuers() {
-						// TODO Auto-generated method stub
-						return null;
-					}
-					
-					@Override
-					public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-						// TODO Auto-generated method stub
-						
-					}
-				}
-		};
+		String filePath = null;
 		InputStream in = null;
 		FileOutputStream fileOS = null;
-		
+		URLConnection urlConn = null;
+		int length = 0;
+		byte[] buffer;
+		URL url = null;
 		try {
-			SSLContext sc = SSLContext.getInstance("SSL");
-			sc.init(null, trustManager, new java.security.SecureRandom());
-			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-			
-			URL url = new URL(fileUrl);
-			URLConnection urlConn = url.openConnection();
-			
-			in = urlConn.getInputStream();
-			fileOS = new FileOutputStream(new File(filePath));
-			
-			byte[] buffer = new byte[2048];
-			int length = 0;
-			while((length = in.read(buffer)) != -1) {
-				fileOS.write(buffer, 0, length);
+			if(NumberUtils.toInt(likeCount) > NumberUtils.toInt(env.getProperty("like.count.threshold"))) {
+				filePath = env.getProperty("file.path") + random.nextInt() + env.getProperty("file.extn");
+				fileUrl = new StringBuilder(fileUrl).append("&").append(ncCat).append("&").append(ncOhc).append("&").append(oh).append("&").append(oe).toString();
+				url = new URL(fileUrl);
+				urlConn = url.openConnection();
+				in = urlConn.getInputStream();
+				fileOS = new FileOutputStream(new File(filePath));
+				buffer = new byte[2048];
+				while((length = in.read(buffer)) != -1) {
+					fileOS.write(buffer, 0, length);
+				}
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
